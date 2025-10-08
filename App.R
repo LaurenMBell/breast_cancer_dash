@@ -12,6 +12,7 @@ library(dplyr)
 library(mapDK)
 
 #source("bar_treatment.R")
+source("helper.R")
 
 stage_theme <- c("1" = "yellow", 
                  "2" = "orange", 
@@ -107,10 +108,10 @@ ui <- page_navbar(
   nav_panel(
     title = "About the Data",
     navset_card_pill(
-      nav_panel("Breast Cancer", "about breast cancer, 
-                the subtypes, and cancer bio"),
-      nav_panel("METABRIC", "all abut metabric and the papers using this data"), 
-      nav_panel("Transcriptomics", "about transcriptomics and radiomics")
+      nav_panel("Overview", about_overview()),
+      nav_panel("Breast Cancer", about_breast_cancer()),
+      nav_panel("METABRIC", about_metabric()), 
+      nav_panel("Transcriptomics", about_transcriptomics())
     )
   ), #closes 'about the data' page
   
