@@ -69,8 +69,6 @@ ui <- page_navbar(
       ) # closes main page for data exploration
     )
   ),#closes data exploration page
-    
-  
   
   nav_panel(
     title = "Cohort Statistics", 
@@ -104,6 +102,18 @@ ui <- page_navbar(
       plotOutput("cancer_subtype_bar")
     )
   ), #closes quick facts page
+  
+  
+  nav_panel(
+    title = "About the Data",
+    navset_card_pill(
+      nav_panel("Breast Cancer", "about breast cancer, 
+                the subtypes, and cancer bio"),
+      nav_panel("METABRIC", "all abut metabric and the papers using this data"), 
+      nav_panel("Transcriptomics", "about transcriptomics and radiomics")
+    )
+  ), #closes 'about the data' page
+  
   
   nav_panel(
     title = "Survival Calculator",
