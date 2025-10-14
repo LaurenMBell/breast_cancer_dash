@@ -14,14 +14,24 @@ library(mapDK)
 #source("bar_treatment.R")
 source("helper.R")
 
-stage_theme <- c("1" = "yellow", 
-                 "2" = "orange", 
-                 "3" = "red", 
-                 "4" = "darkred")
+stage_theme <- c("0" = "#f9c74f", #TO DOL: CHANGE COLOR PALETTE
+                 "1" = "#EE9B00", 
+                 "2" = "#CA6702", 
+                 "3" = "#BB3E03", 
+                 "4" = "#Ae2012", 
+                 "NA" = "#E9D8A6")
 
 treatment_theme <- c("Chemotherapy" = "#E69F00",
                      "Hormone Therapy" = "#56B4E9",
                      "Radio Therapy" = "#009E73")
+
+type_theme <- c("All Cancer Subtypes" = "#577590",
+                "All Carcinoma Subtypes" = "#76c893",
+                "Breast Invasive Ductal Carcinoma" = "#001219", 
+                "Breast Mixed Ductal and Lobular Carcinoma" = "#005F73", 
+                "Breast Invasive Lobular Carcinoma" = "#0A9396", 
+                "Breast Invasive Mixed Mucinous Carcinoma" = "#94D2BD", 
+                "Metaplastic Breast Cancer" = "#8ecae6")
 
 
 cancer_data <- read_csv("data/METABRIC_RNA_Mutation.csv")
@@ -60,13 +70,20 @@ ui <- page_navbar(
                            choices = c("Masectomy", "Breast Conserving"),
                            selected = c("Masectomy", "Breast Conserving")
         )
+        
       ), #closes data exploration selection menu
       
       fluidRow(
         card(
           card_header("Tumor Size for Selected Cancer Type"), 
-          plotOutput("tumor_size_hist")
-        )
+          plotOutput("tumor_size_hist"),
+          sliderInput("bins", 
+                      label = "Select number of bins:", 
+                      min = 5, 
+                      max = 50, 
+                      value = 30
+          ) 
+        ) #closes tumor size histogram card
       ) # closes main page for data exploration
     )
   ),#closes data exploration page
@@ -97,11 +114,18 @@ ui <- page_navbar(
         value = round(mean(cancer_data$overall_survival_months, na.rm = TRUE), 1), 
         showcase = bsicons::bs_icon("calendar-event"), 
         theme = "warning"
-      ),
+      )
     ), #closes column layout
-    card(
-      plotOutput("cancer_subtype_bar")
+    layout_columns(
+      card(
+        plotOutput("cancer_subtype_bar")
+      ), 
+      card(
+        plotOutput("age_size_scatter")
+      )
+      # TO DO: add a "create your own plot" card HERE
     )
+    
   ), #closes quick facts page
   
   
@@ -120,7 +144,7 @@ ui <- page_navbar(
     title = "Survival Calculator",
     card(
       card_header("Survival Time Prediction"),
-      p("Survival calculator goes here...")
+      p("survival calculator goes here...")
     )
   ) #closes survival calculator page
 )
@@ -155,11 +179,13 @@ server <- function(input, output) {
   #tumor size histogram: filter to selected type, age, and surgery type
   output$tumor_size_hist <- renderPlot({
     summary <- filtered_data()
+    selected_color <- type_theme[input$cancer_subtype]
     
     ggplot(summary, aes(x = tumor_size)) + 
-      geom_histogram(bins=15, fill="steelblue", color="white") +
+      geom_histogram(bins=input$bins, fill = selected_color, color ="white") +
       labs(
-        #title = "Distribution of Tumor Size\nfor Selected Cancer Type", 
+        # if 'all cancer subtypes' or 'all carcinoma' is selected, show those in a 
+        # stacked bar chart 
         x = "Tumor Size (cm)", 
         y = "Count") +
       theme_minimal()
@@ -167,17 +193,37 @@ server <- function(input, output) {
   
   #cohort quick facts bar chart of cancer subtypes
   output$cancer_subtype_bar <- renderPlot({
-    title = "Count of Cancer Subtypes"
-    cancer_data %>%
-      count(cancer_type_detailed) %>%
-      ggplot(aes(x = reorder(cancer_type_detailed, n), y = n)) + 
-      geom_col(fill = "steelblue") +
+    plot_data <- cancer_data %>%
+      mutate(tumor_stage = as.character(tumor_stage)) %>% 
+      mutate(tumor_stage = ifelse(is.na(tumor_stage), "NA", tumor_stage)) %>% 
+      count(cancer_type_detailed, tumor_stage) %>%
+      drop_na() 
+    
+    ggplot(plot_data, aes(x = reorder(cancer_type_detailed, n, sum), 
+                          y = n, 
+                          fill = tumor_stage)) +  
+      geom_col(position = "stack") +
       coord_flip() +
+      scale_fill_manual(values = stage_theme, 
+                        na.value = "darkgrey") +  
       labs(
+        title = "Count of Cancer Subtypes by Tumor Stage",
         x = "Cancer Subtype", 
-        y = "Count"
+        y = "Count",
+        fill = "Tumor Stage"
       ) +
-      theme_minimal()
+      theme_minimal() +
+      theme(legend.position = "right")
+  })
+  
+  output$age_size_scatter <- renderPlot({
+    ggplot(cancer_data, aes(x=cancer_data$age_at_diagnosis, y=cancer_data$tumor_size)) + 
+      geom_point() + 
+      labs(
+        title = "Correlation of Age and Tumor Size", 
+        x = "Age at Diagnosis", 
+        y = "Tumor Size (cm)"
+      )
   })
   
 }
