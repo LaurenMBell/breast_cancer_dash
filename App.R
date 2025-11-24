@@ -4,17 +4,19 @@
 ## how could you connect a ML or LR 
 ## model that predicts survival time on this data?
 
+## ADD BOX AND WHISKER PLOT WITH ANOVA
+
 library(shiny)
 library(bslib)
 library(tidyverse)
 library(ggplot2)
 library(dplyr)
-library(mapDK)
 
 #source("bar_treatment.R")
 source("helper.R")
+source("survival_calc.R")
 
-stage_theme <- c("0" = "#f9c74f", #TO DOL: CHANGE COLOR PALETTE
+stage_theme <- c("0" = "#f9c74f",
                  "1" = "#EE9B00", 
                  "2" = "#CA6702", 
                  "3" = "#BB3E03", 
@@ -67,8 +69,8 @@ ui <- page_navbar(
         
         checkboxGroupInput("surgery_type",
                            label = "Select surgery type:",
-                           choices = c("Masectomy", "Breast Conserving"),
-                           selected = c("Masectomy", "Breast Conserving")
+                           choices = c("Mastectomy", "Breast Conserving"),
+                           selected = c("Mastectomy", "Breast Conserving")
         )
         
       ), #closes data exploration selection menu
@@ -83,7 +85,16 @@ ui <- page_navbar(
                       max = 50, 
                       value = 30
           ) 
-        ) #closes tumor size histogram card
+        ), #closes tumor size histogram card
+        card(
+          card_header("Age and Tumor Size Correlation by Stage"),
+          plotOutput("age_size_scatter"),
+          checkboxGroupInput("stage_scatter", 
+                      label = "Select stage(s) to visualize:", 
+                      choices = c(0, 1, 2, 3, 4),
+                      selected = c(0, 1, 2, 3, 4))
+  
+        ) #closes age and tumor size scatter plot
       ) # closes main page for data exploration
     )
   ),#closes data exploration page
@@ -118,10 +129,10 @@ ui <- page_navbar(
     ), #closes column layout
     layout_columns(
       card(
-        plotOutput("cancer_subtype_bar")
+        plotOutput("cancer_subtype_bar"),
       ), 
       card(
-        plotOutput("age_size_scatter")
+        plotOutput("cancer_type_by_survival")
       )
       # TO DO: add a "create your own plot" card HERE
     )
@@ -199,11 +210,10 @@ server <- function(input, output) {
       count(cancer_type_detailed, tumor_stage) %>%
       drop_na() 
     
-    ggplot(plot_data, aes(x = reorder(cancer_type_detailed, n, sum), 
+    ggplot(plot_data, aes(x = reorder(cancer_type_detailed, n, FUN = sum), 
                           y = n, 
                           fill = tumor_stage)) +  
       geom_col(position = "stack") +
-      coord_flip() +
       scale_fill_manual(values = stage_theme, 
                         na.value = "darkgrey") +  
       labs(
@@ -217,13 +227,52 @@ server <- function(input, output) {
   })
   
   output$age_size_scatter <- renderPlot({
-    ggplot(cancer_data, aes(x=cancer_data$age_at_diagnosis, y=cancer_data$tumor_size)) + 
-      geom_point() + 
+    data <- filtered_data() %>%
+      mutate(
+        tumor_stage = as.character(tumor_stage),
+        tumor_stage = ifelse(is.na(tumor_stage), "NA", tumor_stage)
+      )
+    # filter data by selected stages from the checkbox input
+    
+    data <- data %>%
+      filter(tumor_stage %in% as.character(input$stage_scatter))
+    
+    if (nrow(data) > 2) {
+      corr <- cor(data$age_at_diagnosis, data$tumor_size, use = "complete.obs")
+      corr_text <- paste0("r = ", round(corr, 3))
+    } else {
+      corr_text <- "Not enough data"
+    }
+    
+    ggplot(data, aes(x= age_at_diagnosis, y= tumor_size, 
+                            color = as.character(tumor_stage))) + 
+      geom_jitter() + 
       labs(
         title = "Correlation of Age and Tumor Size", 
         x = "Age at Diagnosis", 
-        y = "Tumor Size (cm)"
-      )
+        y = "Tumor Size (cm)", 
+        color = "Tumor Stage") + 
+      scale_color_manual(values = stage_theme) + 
+      geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "dashed") +
+      annotate("text", x = Inf, y = Inf, label = corr_text, 
+               hjust = 1.1, vjust = 1.5, size = 5, color = "black")
+  })
+  
+  output$cancer_type_by_survival <- renderPlot({
+    ggplot(cancer_data, aes(x = cancer_type_detailed, 
+                            y = overall_survival_months, 
+                            fill = cancer_type_detailed)) + 
+      geom_boxplot() + 
+      scale_fill_manual(values = type_theme) +
+      labs(
+        title = "Overall Survival by Cancer Subtype",
+        x = "Cancer Subtype",
+        y = "Overall Survival (months)",
+        fill = "Cancer Subtype"
+      ) +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1),
+            legend.position = "none")
   })
   
 }
