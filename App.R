@@ -14,7 +14,7 @@ library(dplyr)
 
 #source("bar_treatment.R")
 source("helper.R")
-source("survival_calc.R")
+#source("survival_calc.R")
 
 stage_theme <- c("0" = "#f9c74f",
                  "1" = "#EE9B00", 
