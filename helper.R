@@ -1,19 +1,19 @@
 #helper script for some of the meatier functions in the dashboard
 
 about_overview <- function() {
-  cat("The data used in this dashboard is from this Kaggle 
+  print("The data used in this dashboard is from this Kaggle 
         dataset: https://www.kaggle.com/datasets/raghadalharbi/breast-cancer-gene-expression-profiles-metabric /n
         It is a collection of transcriptomic, genomic, and long-term clinical data collected into the METABRIC
         database.")
 }
 
 about_breast_cancer <- function() {
-  print("PRINT")
+  print("Breast cancer is...")
 }
 
 about_metabric <- function() {
   
-  cat("The Molecular Taxonomy of Breast Cancer International Consortium, or METABRIC, is a database
+  print("The Molecular Taxonomy of Breast Cancer International Consortium, or METABRIC, is a database
         of targeted sequencing data of ~2000 primary breast cancer samples, with their corresponding
         clinical and genomic data. It was collected by Professor Carlos Caldas (Cambridge Research 
         Institute) and Professor Sam Aparico (British Columbia Cancer Centre), and was first published in 
@@ -26,5 +26,6 @@ about_metabric <- function() {
 }
 
 about_transcriptomics <- function() {
-  print("hello world one more")
+  print("Transcriptomics is the term for the use of transcript data, ie: a snapshot of mRNA within a
+        sample at a time.")
 }

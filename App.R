@@ -1,16 +1,9 @@
 ## Lauren practice dashboard for shiny!
 ## visualizes breast cancer data
 
-## how could you connect a ML or LR 
-## model that predicts survival time on this data?
-
-## ADD BOX AND WHISKER PLOT WITH ANOVA
-
 library(shiny)
 library(bslib)
 library(tidyverse)
-library(ggplot2)
-library(dplyr)
 
 #source("bar_treatment.R")
 source("helper.R")
@@ -155,7 +148,7 @@ ui <- page_navbar(
     title = "Survival Calculator",
     card(
       card_header("Survival Time Prediction"),
-      p("survival calculator goes here...")
+      p("Naive Bayes survival calculator under construction")
     )
   ) #closes survival calculator page
 )
