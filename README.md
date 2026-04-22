@@ -3,7 +3,7 @@ data viz, design principles, creating ML models, and working with
 transcriptomics and radiomics data.
 
 Features:
-- Naive Bayes survival classifier using discretized transcriptomics and metadata
+- Naive Bayes survival classifier using transcriptomics and metadata, integrated so users can input predictions 
 - different reactive visualizations of cohort, with interactive filtering
 - analytics dashboard
 
