@@ -1,6 +1,6 @@
-This is a project of Lauren Bell's to practice using R Shiny, 
-data viz, design principles, creating ML models, and working with 
-transcriptomics and radiomics data.
+Breast cancer data analytics dashboard using R Shiny, 
+data viz, design principles, Naive Bayes classification, and working with 
+transcriptomics data.
 
 Features:
 - Naive Bayes survival classifier using transcriptomics and metadata, integrated so users can input predictions 
